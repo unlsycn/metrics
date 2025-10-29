@@ -64,7 +64,7 @@ export default async function({login, data, rest, q, account, imports}, {enabled
         .map(event => ({event, customType:payloadTypesToCustomTypes[event.type]}))
         .filter(({customType}) => !!customType) //Ignore events with an unknown type
         .filter(({customType}) => filter.includes("all") || filter.includes(customType)) //Filter events based on user preference
-        .map(async ({event}) => event) //Discard customType, it will be re-assigned
+        .map(({event}) => event) //Discard customType, it will be re-assigned
         .map(async ({type, payload, actor:{login:actor}, repo:{name:repo}, created_at}) => {
           //See https://docs.github.com/en/free-pro-team@latest/developers/webhooks-and-events/github-event-types
           const timestamp = new Date(created_at)
@@ -166,12 +166,13 @@ export default async function({login, data, rest, q, account, imports}, {enabled
               let {size, ref, head, before} = payload
               const [owner, repoName] = repo.split("/")
 
-              let {commits} = await rest.compareCommitsWithBasehead({owner, repo:repoName, basehead:`${before}...${head}`})
+              const res = await rest.repos.compareCommitsWithBasehead({owner, repo:repoName, basehead:`${before}...${head}`})
+              let {commits} = res.data
 
               commits = commits.filter(({author:{email}}) => imports.filters.text(email, ignored))
               if (!commits.length)
                 return null
-              if (commits.slice(-1).pop()?.message.startsWith("Merge branch "))
+              if (commits.slice(-1).pop()?.commit.message.startsWith("Merge branch "))
                 commits = commits.slice(-1)
 
               return {type:customType, actor, timestamp, repo, size, branch:ref.match(/refs.heads.(?<branch>.*)/)?.groups?.branch ?? null, commits:commits.reverse().map(({sha, message}) => ({sha:sha.substring(0, 7), message}))}

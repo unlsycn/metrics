@@ -163,12 +163,17 @@ export default async function({login, data, rest, q, account, imports}, {enabled
             }
             //Pushed commits
             case "PushEvent": {
-              let {size, commits, ref} = payload
+              let {size, ref, head, before} = payload
+              const [owner, repoName] = repo.split("/")
+
+              let {commits} = await rest.compareCommitsWithBasehead({owner, repo:repoName, basehead:`${before}...${head}`})
+
               commits = commits.filter(({author:{email}}) => imports.filters.text(email, ignored))
               if (!commits.length)
                 return null
               if (commits.slice(-1).pop()?.message.startsWith("Merge branch "))
                 commits = commits.slice(-1)
+
               return {type:customType, actor, timestamp, repo, size, branch:ref.match(/refs.heads.(?<branch>.*)/)?.groups?.branch ?? null, commits:commits.reverse().map(({sha, message}) => ({sha:sha.substring(0, 7), message}))}
             }
             //Released

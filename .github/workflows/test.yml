@@ -4,6 +4,7 @@ on:
   pull_request:
     branches: [ master ]
   workflow_call:
+  workflow_dispatch:
 
 jobs:
 
@@ -25,8 +26,6 @@ jobs:
         run: npm ci
       - name: Check contributions requirements
         run: npm run test-contrib
-        env:
-          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
       - name: Run linter
         run: npm run linter
 

@@ -32,7 +32,7 @@ inputs:
     description: |
       GitHub repository
 
-      This option is only revelant for repositories templates
+      This option is only relevant for repositories templates
     type: string
     default: ""
     preset: no
@@ -125,7 +125,7 @@ inputs:
       - `always`: always try to push changes
       - `data-changed`: skip changes if no data changed (e.g. like when only metadata changed)
 
-      > ℹ️ This option is only revelant when [`config_output: svg`](/source/plugins/core/README.md#config_output) is set
+      > ℹ️ This option is only relevant when [`config_output: svg`](/source/plugins/core/README.md#config_output) is set
     type: string
     default: always
     values:
@@ -152,7 +152,7 @@ inputs:
     description: |
       Community templates to setup
 
-      See [community templates guide](https://github.com/gh-metrics/metrics/blob/master/source/templates/community/README.md) for more informations
+      See [community templates guide](https://github.com/gh-metrics/metrics/blob/master/source/templates/community/README.md) for more information
     type: array
     format: comma-separated
     default: ""

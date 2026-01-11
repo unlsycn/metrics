@@ -63,10 +63,31 @@ export class RecentAnalyzer extends Analyzer {
 
     //Retrieve edited files and filter edited lines (those starting with +/-) from patches
     this.debug("fetching patches")
+    const listedCommits = (await Promise.all(
+      commits.map(async ({payload, repo: {name: repository}}) => {
+        if (payload?.commits?.length)
+          return payload.commits
+        if (payload?.before && payload?.head) {
+          try {
+            const [owner, repo] = repository.split("/")
+            const {data: {commits}} = await this.rest.repos.compareCommitsWithBasehead({owner, repo, basehead: `${payload.before}...${payload.head}`})
+            return commits.map(({sha, url, commit}) => ({
+              sha,
+              url,
+              committer: commit?.committer ?? commit?.author ?? null,
+              message: commit?.message,
+            }))
+          }
+          catch (error) {
+            this.debug(`failed to fetch commits for ${repository} (${error})`)
+          }
+        }
+        return []
+      }),
+    )).flat()
     const patches = [
       ...await Promise.allSettled(
-        commits
-          .flatMap(({payload}) => payload?.commits ?? [])
+        listedCommits
           .filter(({committer}) => filters.text(committer?.email, this.authoring, {debug: false}))
           .map(commit => commit.url)
           .map(async commit => (await this.rest.request(commit)).data),

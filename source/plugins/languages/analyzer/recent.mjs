@@ -81,18 +81,17 @@ export class RecentAnalyzer extends Analyzer {
             const {data: {commits}} = await this.rest.repos.compareCommitsWithBasehead({owner, repo, basehead: `${payload.before}...${payload.head}`})
             return commits.map(({sha, url, commit}) => {
               const person = commit?.committer ?? commit?.author ?? null
-              const email = person?.email ?? null
-              const name = person?.name ?? null
+              const committer = person?.email ? {email: person.email, name: person?.name ?? null} : null
               return {
                 sha,
                 url,
-                committer: email ? {email, name} : null,
+                committer,
                 message: commit?.message,
               }
             })
           }
           catch (error) {
-            const reason = error?.message || `${error}`
+            const reason = error?.toString?.() ?? String(error)
             this.debug(`failed to fetch commits via compareCommitsWithBasehead API for ${repository} (${reason})`)
             return []
           }

@@ -80,6 +80,7 @@ export class RecentAnalyzer extends Analyzer {
             }
             const {data: {commits}} = await this.rest.repos.compareCommitsWithBasehead({owner, repo, basehead: `${payload.before}...${payload.head}`})
             return commits.map(({sha, url, commit}) => {
+              // Keep authoring filter working even if committer is missing by falling back to author metadata
               const person = commit?.author ?? commit?.committer ?? null
               const committer = person?.email ? {email: person.email, name: person?.name ?? null} : null
               return {
@@ -91,7 +92,7 @@ export class RecentAnalyzer extends Analyzer {
             })
           }
           catch (error) {
-            const reason = String(error)
+            const reason = error?.stack ?? error?.message ?? String(error)
             this.debug(`failed to fetch commits via compareCommitsWithBasehead API for ${repository} (${reason})`)
             return []
           }

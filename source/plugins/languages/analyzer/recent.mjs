@@ -70,7 +70,7 @@ export class RecentAnalyzer extends Analyzer {
         if (payload?.before && payload?.head) {
           try {
             if (typeof repository !== "string") {
-              this.debug(`failed to fetch commits via compareCommitsWithBasehead API for ${repository} (invalid repository name)`)
+              this.debug(`failed to fetch commits via compareCommitsWithBasehead API (invalid repository type: ${typeof repository})`)
               return []
             }
             const [owner, repo] = repository.split("/")
@@ -80,7 +80,7 @@ export class RecentAnalyzer extends Analyzer {
             }
             const {data: {commits}} = await this.rest.repos.compareCommitsWithBasehead({owner, repo, basehead: `${payload.before}...${payload.head}`})
             return commits.map(({sha, url, commit}) => {
-              const person = commit?.committer ?? commit?.author ?? null
+              const person = commit?.author ?? commit?.committer ?? null
               const committer = person?.email ? {email: person.email, name: person?.name ?? null} : null
               return {
                 sha,
@@ -91,7 +91,7 @@ export class RecentAnalyzer extends Analyzer {
             })
           }
           catch (error) {
-            const reason = error?.toString?.() ?? String(error)
+            const reason = String(error)
             this.debug(`failed to fetch commits via compareCommitsWithBasehead API for ${repository} (${reason})`)
             return []
           }

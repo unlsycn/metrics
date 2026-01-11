@@ -69,25 +69,30 @@ export class RecentAnalyzer extends Analyzer {
           return payload.commits
         if (payload?.before && payload?.head) {
           try {
-            const [owner, repo] = repository?.split?.("/") ?? []
+            if (typeof repository !== "string") {
+              this.debug(`failed to fetch commits via compareCommitsWithBasehead API for ${repository} (invalid repository name)`)
+              return []
+            }
+            const [owner, repo] = repository.split("/")
             if (!owner || !repo) {
               this.debug(`failed to fetch commits via compareCommitsWithBasehead API for ${repository} (invalid repository name)`)
               return []
             }
             const {data: {commits}} = await this.rest.repos.compareCommitsWithBasehead({owner, repo, basehead: `${payload.before}...${payload.head}`})
-            return commits.map(({sha, url, commit}) => ({
-              sha,
-              url,
-              committer: (() => {
-                const email = commit?.committer?.email ?? commit?.author?.email ?? null
-                const name = commit?.committer?.name ?? commit?.author?.name ?? null
-                return email ? {email, name} : null
-              })(),
-              message: commit?.message,
-            }))
+            return commits.map(({sha, url, commit}) => {
+              const email = commit?.committer?.email ?? commit?.author?.email ?? null
+              const name = commit?.committer?.name ?? commit?.author?.name ?? null
+              return {
+                sha,
+                url,
+                committer: email ? {email, name} : null,
+                message: commit?.message,
+              }
+            })
           }
           catch (error) {
-            this.debug(`failed to fetch commits via compareCommitsWithBasehead API for ${repository} (${error?.message ?? error})`)
+            const reason = error?.message || `${error}`
+            this.debug(`failed to fetch commits via compareCommitsWithBasehead API for ${repository} (${reason})`)
           }
         }
         return []

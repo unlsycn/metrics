@@ -283,6 +283,21 @@ export default async function({faker}, target, that, [{username: login, page, pe
         public: true,
       },
       {
+        id: "10000000015",
+        type: "PushEvent",
+        actor: {login},
+        repo: {name: "gh-metrics/metrics"},
+        payload: {
+          size: 2,
+          ref: "refs/heads/master",
+          before: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          head: "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+          commits: [],
+        },
+        created_at: faker.date.recent({days: 7}),
+        public: true,
+      },
+      {
         id: "10000000012",
         type: "PullRequestEvent",
         actor: {

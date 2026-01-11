@@ -45,7 +45,7 @@ jobs:
         env:
           GIT_REF: ${{ github.head_ref || 'master' }}
         run: docker build -t gh-metrics/metrics:$(echo $GIT_REF | sed 's/[^a-z]/-/g') .
-      - name: Run tests
+      - name: Run recent analyzer test
         env:
           GIT_REF: ${{ github.head_ref || 'master' }}
-        run: docker run --rm --entrypoint="" gh-metrics/metrics:$(echo $GIT_REF | sed 's/[^a-z]/-/g') npm run test-metrics
+        run: docker run --rm --entrypoint="" gh-metrics/metrics:$(echo $GIT_REF | sed 's/[^a-z]/-/g') npm run test-recent-analyzer

@@ -16,7 +16,8 @@
     "linter": "eslint source/**/*.mjs --quiet",
     "dev": "nodemon source/app/web/index.mjs -e mjs,css,ejs,json",
     "postinstall": "node node_modules/puppeteer/install.js",
-    "indepth": "node source/plugins/languages/analyzers.mjs"
+    "indepth": "node source/plugins/languages/analyzers.mjs",
+    "test-recent-analyzer": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --runTestsByPath tests/recent.analyzer.test.js"
   },
   "repository": {
     "type": "git",

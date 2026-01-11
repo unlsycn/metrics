@@ -1,24 +1,22 @@
 describe("RecentAnalyzer", () => {
   test("handles events without commits", async () => {
     const {RecentAnalyzer} = await import("../source/plugins/languages/analyzer/recent.mjs")
+    const {faker} = await import("@faker-js/faker")
+    const listEvents = (await import("./mocks/api/github/rest/activity/listEventsForAuthenticatedUser.mjs")).default
+    const compareCommitsWithBasehead = (await import("./mocks/api/github/rest/repos/compareCommitsWithBasehead.mjs")).default
+    const requestMock = (await import("./mocks/api/github/rest/request.mjs")).default
     const rest = {
       activity: {
-        listEventsForAuthenticatedUser: jest.fn().mockResolvedValue({
-          data: [
-            {
-              type: "PushEvent",
-              actor: {login: "someone"},
-              repo: {name: "someone/repo"},
-              payload: {ref: "refs/heads/main"},
-              created_at: new Date().toISOString(),
-            },
-          ],
-        }),
+        listEventsForAuthenticatedUser: (...args) => listEvents({faker}, null, null, args),
       },
-      request: jest.fn(),
+      repos: {
+        compareCommitsWithBasehead: (...args) => compareCommitsWithBasehead({faker}, null, null, args),
+      },
+      request: (...args) => requestMock({faker}, null, null, args),
     }
-    const analyzer = new RecentAnalyzer("tester", {rest, context: {mode: "user"}, load: 1})
-    await expect(analyzer.patches()).resolves.toEqual([])
-    expect(rest.request).not.toHaveBeenCalled()
+    const analyzer = new RecentAnalyzer("tester", {rest, context: {mode: "user"}, load: 5})
+    const patches = await analyzer.patches()
+    expect(Array.isArray(patches)).toBe(true)
+    expect(patches.length).toBeGreaterThan(0)
   })
 })

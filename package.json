@@ -5,7 +5,7 @@
   "main": "index.mjs",
   "scripts": {
     "start": "node source/app/web/index.mjs",
-    "test": "jest --runInBand",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
     "test-contrib": "jest --runInBand ci.test.js --noStackTrace",
     "test-presets": "jest --runInBand presets.test.js --noStackTrace",
     "test-metrics": "jest --runInBand metrics.test.js",
@@ -16,7 +16,8 @@
     "linter": "eslint source/**/*.mjs --quiet",
     "dev": "nodemon source/app/web/index.mjs -e mjs,css,ejs,json",
     "postinstall": "node node_modules/puppeteer/install.js",
-    "indepth": "node source/plugins/languages/analyzers.mjs"
+    "indepth": "node source/plugins/languages/analyzers.mjs",
+    "test-recent-analyzer": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --runTestsByPath tests/recent.analyzer.test.js"
   },
   "repository": {
     "type": "git",

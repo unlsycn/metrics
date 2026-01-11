@@ -63,10 +63,46 @@ export class RecentAnalyzer extends Analyzer {
 
     //Retrieve edited files and filter edited lines (those starting with +/-) from patches
     this.debug("fetching patches")
+    const listedCommits = (await Promise.all(
+      commits.map(async ({payload, repo: {name: repository}}) => {
+        if (payload?.commits?.length)
+          return payload.commits
+        if (payload?.before && payload?.head) {
+          try {
+            if (typeof repository !== "string") {
+              this.debug(`failed to fetch commits via compareCommitsWithBasehead API (invalid repository type: ${typeof repository})`)
+              return []
+            }
+            const [owner, repo] = repository.split("/")
+            if (!owner || !repo) {
+              this.debug(`failed to fetch commits via compareCommitsWithBasehead API for ${repository} (invalid repository name)`)
+              return []
+            }
+            const {data: {commits}} = await this.rest.repos.compareCommitsWithBasehead({owner, repo, basehead: `${payload.before}...${payload.head}`})
+            return commits.map(({sha, url, commit}) => {
+              // Keep authoring filter working even if committer is missing by falling back to author metadata
+              const person = commit?.author ?? commit?.committer ?? null
+              const committer = person?.email ? {email: person.email, name: person?.name ?? null} : null
+              return {
+                sha,
+                url,
+                committer,
+                message: commit?.message,
+              }
+            })
+          }
+          catch (error) {
+            const reason = error?.stack ?? error?.message ?? String(error)
+            this.debug(`failed to fetch commits via compareCommitsWithBasehead API for ${repository} (${reason})`)
+            return []
+          }
+        }
+        return []
+      }),
+    )).flat()
     const patches = [
       ...await Promise.allSettled(
-        commits
-          .flatMap(({payload}) => payload.commits)
+        listedCommits
           .filter(({committer}) => filters.text(committer?.email, this.authoring, {debug: false}))
           .map(commit => commit.url)
           .map(async commit => (await this.rest.request(commit)).data),

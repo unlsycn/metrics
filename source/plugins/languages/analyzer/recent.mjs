@@ -78,12 +78,16 @@ export class RecentAnalyzer extends Analyzer {
             return commits.map(({sha, url, commit}) => ({
               sha,
               url,
-              committer: commit?.committer ?? commit?.author ?? null,
+              committer: (() => {
+                const email = commit?.committer?.email ?? commit?.author?.email ?? null
+                const name = commit?.committer?.name ?? commit?.author?.name ?? null
+                return email ? {email, name} : null
+              })(),
               message: commit?.message,
             }))
           }
           catch (error) {
-            this.debug(`failed to fetch commits via compareCommitsWithBasehead API for ${repository} (${error})`)
+            this.debug(`failed to fetch commits via compareCommitsWithBasehead API for ${repository} (${error?.message ?? error})`)
           }
         }
         return []

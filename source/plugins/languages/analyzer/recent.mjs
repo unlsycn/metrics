@@ -69,7 +69,11 @@ export class RecentAnalyzer extends Analyzer {
           return payload.commits
         if (payload?.before && payload?.head) {
           try {
-            const [owner, repo] = repository.split("/")
+            const [owner, repo] = repository?.split?.("/") ?? []
+            if (!owner || !repo) {
+              this.debug(`failed to fetch commits via compareCommitsWithBasehead API for ${repository} (invalid repository name)`)
+              return []
+            }
             const {data: {commits}} = await this.rest.repos.compareCommitsWithBasehead({owner, repo, basehead: `${payload.before}...${payload.head}`})
             return commits.map(({sha, url, commit}) => ({
               sha,
@@ -79,7 +83,7 @@ export class RecentAnalyzer extends Analyzer {
             }))
           }
           catch (error) {
-            this.debug(`failed to fetch commits for ${repository} (${error})`)
+            this.debug(`failed to fetch commits via compareCommitsWithBasehead API for ${repository} (${error})`)
           }
         }
         return []
